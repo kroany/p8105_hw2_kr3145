@@ -73,7 +73,7 @@ Merge pols_month_df, snp_df, and unemployment_df
 
 ```{r}
 # join datasets
-snp_pols_unempl_df =
+pols_snp_unempl_df =
   left_join(pols_month_df, snp_df, by = c("year", "month")) |> 
   left_join(unemployment_df, by = c("year", "month")) 
 ```
@@ -81,6 +81,44 @@ snp_pols_unempl_df =
 PARAGRAPH ABOUT DESCRIPTION HERE
 
 
+# Problem 2
 
+Read and clean Mr. Trash Wheel dataset
+
+```{r}
+mr_trash_wheel_df =
+  read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
+             sheet = "Mr. Trash Wheel",
+             range = "A2:N655") |> 
+  janitor::clean_names() |> 
+  drop_na(dumpster) |> 
+  mutate(
+    sports_balls = as.integer(round(sports_balls))
+  )
+```
+
+Read and clean Professor Trash Wheel dataset
+
+```{r}
+prof_trash_wheel_df =
+  read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
+             sheet = "Professor Trash Wheel",
+             range = "A2:M123") |> 
+  janitor::clean_names() |> 
+  drop_na(dumpster) 
+```
+
+
+Read and clean Gwynnda Trash Wheel dataset
+
+```{r}
+gwynnda_df =
+  read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
+             sheet = "Gwynnda Trash Wheel",
+             range = "A2:L266") |> 
+  janitor::clean_names() |> 
+  drop_na(dumpster) 
+
+```
 
 
