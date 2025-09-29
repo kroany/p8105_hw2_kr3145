@@ -13,7 +13,7 @@ library(readxl)
 
 # Problem 1
 
-Clean pols-month.csv
+Read and clean pols-month.csv
 
 ```{r}
 pols_month_df = 
@@ -34,7 +34,7 @@ pols_month_df =
   filter(president_values == 1) |> 
   select(-day, -president_values) 
 ```
-Clean snp.csv
+Read and clean snp.csv
 
 ```{r}
 snp_df = 
@@ -52,7 +52,7 @@ snp_df =
     month = month.name[month]
   )
 ```
-Clean unemployment.csv
+Read and clean unemployment.csv
 
 ```{r}
 unemployment_df = 
@@ -79,6 +79,15 @@ pols_snp_unempl_df =
 ```
 
 PARAGRAPH ABOUT DESCRIPTION HERE
+Write a short paragraph about these datasets. Explain briefly what each dataset contained, and describe the resulting dataset (e.g. give the dimension, range of years, and names of key variables).
+
+pols_month_df from pols-month.csv contains 
+
+snp_df from snp.csv contains 
+
+unemployment_df from unemployment.csv contains the ...
+
+- check snp.csv code
 
 
 # Problem 2
@@ -93,9 +102,12 @@ mr_trash_wheel_df =
   janitor::clean_names() |> 
   drop_na(dumpster) |> 
   mutate(
-    sports_balls = as.integer(round(sports_balls))
+    sports_balls = as.integer(round(sports_balls)),
+    year = as.integer(year),
+    trash_wheel = "mr"
   )
 ```
+- 651 obs
 
 Read and clean Professor Trash Wheel dataset
 
@@ -103,11 +115,14 @@ Read and clean Professor Trash Wheel dataset
 prof_trash_wheel_df =
   read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
              sheet = "Professor Trash Wheel",
-             range = "A2:M123") |> 
+             skip = 1) |> 
   janitor::clean_names() |> 
-  drop_na(dumpster) 
+  drop_na(dumpster) |> 
+  mutate(
+    trash_wheel = "prof"
+  )
 ```
-
+- 119 obs
 
 Read and clean Gwynnda Trash Wheel dataset
 
@@ -115,10 +130,31 @@ Read and clean Gwynnda Trash Wheel dataset
 gwynnda_df =
   read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
              sheet = "Gwynnda Trash Wheel",
-             range = "A2:L266") |> 
+             skip = 1) |> 
   janitor::clean_names() |> 
-  drop_na(dumpster) 
-
+  drop_na(dumpster) |> 
+  mutate(
+    trash_wheel = "gwynnda"
+  )
 ```
+- 263 obs, 262 individual dumpsters
+
+Bind mr_trash_wheel_df, prof_trash_wheel_df, and gwynnda_df
+Create tidy dataset
+
+```{r}
+all_trash_wheel_df =
+  bind_rows(mr_trash_wheel_df, prof_trash_wheel_df, gwynnda_df) |> 
+  janitor::clean_names()
+```
+
+- pivot longer --> type of litter, and number????
+- home powered?
+
+The resulting dataset has `r nrow(all_trash_wheel_df)` observations. Some key 
+variables include `weight_tons`, representing the weight of trash in tons, and  `volume_cubic_yards`, representing volume of trash in cubic yards. There are also other variables representing litter types, including `plastic_bottles`, `polystyrene`, `cigarette_butts`, `glass_bottles`, `plastic_bags`, and `wrappers`. `home_powered` represents the number of homes the amount of trash for the dumpster is able to power.  
+
+The total weight of trash collected by Professor Trash Wheel is `r sum(pull(filter(all_trash_wheel_df, trash_wheel == "prof"), weight_tons), na.rm = TRUE)` tons. The total number of cigarette butts collected by Gwynnda in June of 2022 is `r as.integer(sum(pull(filter(all_trash_wheel_df, trash_wheel == "gwynnda", month == "June", year == 2022), cigarette_butts), na.rm = TRUE))`.
+
 
 
