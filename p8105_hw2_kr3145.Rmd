@@ -156,5 +156,58 @@ variables include `weight_tons`, representing the weight of trash in tons, and  
 
 The total weight of trash collected by Professor Trash Wheel is `r sum(pull(filter(all_trash_wheel_df, trash_wheel == "prof"), weight_tons), na.rm = TRUE)` tons. The total number of cigarette butts collected by Gwynnda in June of 2022 is `r as.integer(sum(pull(filter(all_trash_wheel_df, trash_wheel == "gwynnda", month == "June", year == 2022), cigarette_butts), na.rm = TRUE))`.
 
+# Problem 3
+
+Read and clean Zip Codes.csv
+```{r}
+zip_code_df =
+  read_csv("data/Zip Codes.csv") |> 
+  janitor::clean_names() |> 
+  arrange(county, zip_code) |> 
+  select(-state_fips, -file_date) 
+
+```
+- arrange by county and zip code
+- remove state fips and file date
+- rearrange to have variables start with county and zip code
+
+Read and clean Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv
+
+```{r}
+zip_zori_df =
+  read_csv("data/Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv") |> 
+  janitor::clean_names() |> 
+  pivot_longer(
+    col = x2015_01_31:x2024_08_31,
+    names_to = "date",
+    values_to = "zori",
+    names_prefix = "x"
+  ) |> 
+  separate(
+    date, into = c("year", "month", "day"), sep = "_", convert = TRUE
+  ) |> 
+  rename(zip_code = region_name, county = county_name) |> 
+  select(county, zip_code, everything(), -(region_type:metro), -day) |> 
+  mutate(county = str_trim(str_remove(county, "County"))) |> 
+  arrange(county, zip_code) 
+
+  
+```
+- remove region_type, state_name, city, 
+- rename region_name to zip_code
+- pivot longer
+- clean up date variable
+- fix county_name to remove County
+- rearrange to have variables start with county and zip code
+- ???remove NA values???
+
+Merge zip_zori_df and zip_code_df
+
+```{r}
+
+```
+
+For all available ZIP codes, compare rental prices in January 2021 to prices in January 2020. 
+Make a table that shows the 10 ZIP codes (along with the borough and neighborhood) with largest drop in price from January 2020 to 2021. 
 
 
