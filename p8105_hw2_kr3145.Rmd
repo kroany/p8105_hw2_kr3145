@@ -164,7 +164,7 @@ zip_code_df =
   read_csv("data/Zip Codes.csv") |> 
   janitor::clean_names() |> 
   arrange(county, zip_code) |> 
-  select(-state_fips, -file_date) 
+  select(-(state_fips:county_fips), -file_date) 
 
 ```
 - arrange by county and zip code
@@ -187,7 +187,7 @@ zip_zori_df =
     date, into = c("year", "month", "day"), sep = "_", convert = TRUE
   ) |> 
   rename(zip_code = region_name, county = county_name) |> 
-  select(county, zip_code, everything(), -(region_type:metro), -day) |> 
+  select(county, zip_code, everything(), -(region_type:metro), -region_id, -size_rank, -day) |> 
   mutate(county = str_trim(str_remove(county, "County"))) |> 
   arrange(county, zip_code) 
 
@@ -204,10 +204,49 @@ zip_zori_df =
 Merge zip_zori_df and zip_code_df
 
 ```{r}
-
+combined_zip_zori_df =
+  left_join(zip_code_df, zip_zori_df, by = c("county", "zip_code")) |> 
+  janitor::clean_names()
 ```
 
+PARAPGRAPH DESCRIPTION
+
+The dataset has `r nrow(combined_zip_zori_df)` observations. There are `r length(unique(pull(combined_zip_zori_df, zip_code)))` unique zip codes and `r length(unique(pull(combined_zip_zori_df, neighborhood)))` unique neighborhoods in the dataset.
+
+Which ZIP codes appear in the ZIP code dataset but not in the Zillow Rental Price dataset? Using a few illustrative examples discuss why these ZIP codes might be excluded from the Zillow dataset.
+
+`r as.integer(unique(pull(filter(combined_zip_zori_df, is.na(year)), zip_code)))` are  zip codes that appear in the ZIP code dataset but not in the Zillow Rental Price dataset. 
+
+These zip codes may be excluded from the Zillow dataset because 
+- those areas don't have much rental housing, so not enough data to produce a reliable ZORI score?
+- some of these zip codes are associated with a unique-non-geographic zip code, more specifically a single large address or building complex. It is not associated with a traditioanl neighborhood or borough.  some may be associated with po box, or also government offices. (JFK airport) 
+- some zip codes cover multiple geographic areas/boroughs/some are part of new york state, not NYC
+- some zip codes cover universities, hostpials, military facilities??
+
 For all available ZIP codes, compare rental prices in January 2021 to prices in January 2020. 
-Make a table that shows the 10 ZIP codes (along with the borough and neighborhood) with largest drop in price from January 2020 to 2021. 
+
+Make a table that shows the 10 ZIP codes (along with the borough and neighborhood) with largest drop in price from January 2020 to 2021.
+
+```{r}
+combined_zip_zori_df |> 
+  arrange(zip_code) |> 
+  filter(month == 1, 
+         year %in% c(2020, 2021)) |> #only keep zori scores from January 2020 and 2021
+  select(-month) |> #remove month column
+  pivot_wider(
+    names_from = year,
+    values_from = zori,
+    #names_prefix = "year_"
+  ) |> 
+  drop_na(`2020`, `2021`) |> # drop rows that have NA values in either 2020 or 2021
+  mutate(
+    difference = `2020` - `2021` # more postiive number, larger drop in price
+  ) |> 
+  arrange(desc(difference)) |> 
+  head(10) |> 
+  knitr::kable()
+```
+
+
 
 
