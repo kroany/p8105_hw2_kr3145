@@ -52,6 +52,7 @@ snp_df =
     month = month.name[month]
   )
 ```
+
 Read and clean unemployment.csv
 
 ```{r}
@@ -75,20 +76,14 @@ Merge pols_month_df, snp_df, and unemployment_df
 # join datasets
 pols_snp_unempl_df =
   left_join(pols_month_df, snp_df, by = c("year", "month")) |> 
-  left_join(unemployment_df, by = c("year", "month")) 
+  left_join(unemployment_df, by = c("year", "month"))
 ```
-
-PARAGRAPH ABOUT DESCRIPTION HERE
-Write a short paragraph about these datasets. Explain briefly what each dataset contained, and describe the resulting dataset (e.g. give the dimension, range of years, and names of key variables).
-
-pols_month_df from pols-month.csv contains 
-
-snp_df from snp.csv contains 
-
-unemployment_df from unemployment.csv contains the ...
 
 - check snp.csv code
 
+`pols_month_df` from pols-month.csv contains the number of national politicians who are democratic or republican at any given time. `snp_df` from snp.csv contains contains information about the Standard & Poor's stock market index (S&P), which is used as a representative measure of stock market as a whole. `unemployment_df` from unemployment.csv contains monthly percentage of unemployment for the associated year. After tidying and merging the above datasets, the resulting dataset, `pols_snp_unempl_df` contains `r nrow(pols_snp_unempl_df)` observations and `r ncol(pols_snp_unempl_df)` variables. The dataset represents the years ranging from `r min(pull(pols_snp_unempl_df, year))` to `r max(pull(pols_snp_unempl_df, year))`. 
+
+`gov_gop`, `sen_gop`, and `rep_gop` represents the number of governors, senators, and representatives in the republican party on the associated date. `gov_dem`, `sen_dem`, and `rep_dem` represents the number of governors, senators, and representatives in the democratic party during the associated date. `president` indicates whether the president was republican or democratic during the associated date. `close` represents the closing values of the S&P stock index on the associated date. `percent_unemployed` represents the percentage of unemployment during the associated date. 
 
 # Problem 2
 
@@ -150,6 +145,8 @@ all_trash_wheel_df =
 
 - pivot longer --> type of litter, and number????
 - home powered?
+
+SHOW YEAR RANGE???
 
 The resulting dataset has `r nrow(all_trash_wheel_df)` observations. Some key 
 variables include `weight_tons`, representing the weight of trash in tons, and  `volume_cubic_yards`, representing volume of trash in cubic yards. There are also other variables representing litter types, including `plastic_bottles`, `polystyrene`, `cigarette_butts`, `glass_bottles`, `plastic_bags`, and `wrappers`. `home_powered` represents the number of homes the amount of trash for the dumpster is able to power.  
