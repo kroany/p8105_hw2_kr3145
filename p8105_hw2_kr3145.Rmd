@@ -22,9 +22,7 @@ pols_month_df =
   separate(
     mon, into = c("year", "month", "day"), sep = "-", convert = TRUE
     ) |>
-  mutate(
-    month = month.name[month]
-  ) |> 
+  mutate(month = month.name[month]) |> 
   pivot_longer(
     cols = starts_with("prez"),
     names_to = "president",
@@ -34,6 +32,7 @@ pols_month_df =
   filter(president_values == 1) |> 
   select(-day, -president_values) 
 ```
+
 Read and clean snp.csv
 
 ```{r}
@@ -69,7 +68,6 @@ unemployment_df =
   )
 
 ```
-
 Merge pols_month_df, snp_df, and unemployment_df
 
 ```{r}
@@ -78,8 +76,6 @@ pols_snp_unempl_df =
   left_join(pols_month_df, snp_df, by = c("year", "month")) |> 
   left_join(unemployment_df, by = c("year", "month"))
 ```
-
-- check snp.csv code
 
 `pols_month_df` from pols-month.csv contains the number of national politicians who are democratic or republican at any given time. `snp_df` from snp.csv contains contains information about the Standard & Poor's stock market index (S&P), which is used as a representative measure of stock market as a whole. `unemployment_df` from unemployment.csv contains monthly percentage of unemployment for the associated year. After tidying and merging the above datasets, the resulting dataset, `pols_snp_unempl_df` contains `r nrow(pols_snp_unempl_df)` observations and `r ncol(pols_snp_unempl_df)` variables. The dataset represents the years ranging from `r min(pull(pols_snp_unempl_df, year))` to `r max(pull(pols_snp_unempl_df, year))`. 
 
@@ -91,24 +87,24 @@ Read and clean Mr. Trash Wheel dataset
 
 ```{r}
 mr_trash_wheel_df =
-  read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
+  read_excel("data/202509 Trash Wheel Collection Data.xlsx", 
              sheet = "Mr. Trash Wheel",
-             range = "A2:N655") |> 
+             skip = 1) |> 
   janitor::clean_names() |> 
+  janitor::remove_empty("cols") |> 
   drop_na(dumpster) |> 
   mutate(
     sports_balls = as.integer(round(sports_balls)),
-    year = as.integer(year),
+    year = as.numeric(year),
     trash_wheel = "mr"
   )
 ```
-- 651 obs
 
 Read and clean Professor Trash Wheel dataset
 
 ```{r}
 prof_trash_wheel_df =
-  read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
+  read_excel("data/202509 Trash Wheel Collection Data.xlsx", 
              sheet = "Professor Trash Wheel",
              skip = 1) |> 
   janitor::clean_names() |> 
@@ -117,14 +113,13 @@ prof_trash_wheel_df =
     trash_wheel = "prof"
   )
 ```
-- 119 obs
 
 Read and clean Gwynnda Trash Wheel dataset
 
 ```{r}
 gwynnda_df =
-  read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
-             sheet = "Gwynnda Trash Wheel",
+  read_excel("data/202509 Trash Wheel Collection Data.xlsx", 
+             sheet = "Gwynns Falls Trash Wheel",
              skip = 1) |> 
   janitor::clean_names() |> 
   drop_na(dumpster) |> 
@@ -132,24 +127,17 @@ gwynnda_df =
     trash_wheel = "gwynnda"
   )
 ```
-- 263 obs, 262 individual dumpsters
 
 Bind mr_trash_wheel_df, prof_trash_wheel_df, and gwynnda_df
-Create tidy dataset
 
 ```{r}
 all_trash_wheel_df =
   bind_rows(mr_trash_wheel_df, prof_trash_wheel_df, gwynnda_df) |> 
-  janitor::clean_names()
+  janitor::clean_names() |> 
+  select(dumpster, trash_wheel, everything())
 ```
 
-- pivot longer --> type of litter, and number????
-- home powered?
-
-SHOW YEAR RANGE???
-
-The resulting dataset has `r nrow(all_trash_wheel_df)` observations. Some key 
-variables include `weight_tons`, representing the weight of trash in tons, and  `volume_cubic_yards`, representing volume of trash in cubic yards. There are also other variables representing litter types, including `plastic_bottles`, `polystyrene`, `cigarette_butts`, `glass_bottles`, `plastic_bags`, and `wrappers`. `home_powered` represents the number of homes the amount of trash for the dumpster is able to power.  
+The resulting dataset, `all_trash_wheel_df`, has `r nrow(all_trash_wheel_df)` observations and `r ncol(all_trash_wheel_df)` variables. The dataset represents the years ranging from `r min(pull(all_trash_wheel_df, year), na.rm = TRUE)` to `r max(pull(all_trash_wheel_df, year), na.rm = TRUE)`. Some key variables include `weight_tons`, representing the weight of trash in tons, and  `volume_cubic_yards`, representing volume of trash in cubic yards. There are also other variables representing litter types, including `plastic_bottles`, `polystyrene`, `cigarette_butts`, `glass_bottles`, `plastic_bags`, and `wrappers`. `home_powered` represents the number of homes the amount of trash for the dumpster is able to power.  
 
 The total weight of trash collected by Professor Trash Wheel is `r sum(pull(filter(all_trash_wheel_df, trash_wheel == "prof"), weight_tons), na.rm = TRUE)` tons. The total number of cigarette butts collected by Gwynnda in June of 2022 is `r as.integer(sum(pull(filter(all_trash_wheel_df, trash_wheel == "gwynnda", month == "June", year == 2022), cigarette_butts), na.rm = TRUE))`.
 
@@ -164,9 +152,6 @@ zip_code_df =
   select(-(state_fips:county_fips), -file_date) 
 
 ```
-- arrange by county and zip code
-- remove state fips and file date
-- rearrange to have variables start with county and zip code
 
 Read and clean Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv
 
@@ -184,19 +169,13 @@ zip_zori_df =
     date, into = c("year", "month", "day"), sep = "_", convert = TRUE
   ) |> 
   rename(zip_code = region_name, county = county_name) |> 
-  select(county, zip_code, everything(), -(region_type:metro), -region_id, -size_rank, -day) |> 
-  mutate(county = str_trim(str_remove(county, "County"))) |> 
+  select(county, zip_code, year, month, zori) |> 
+  mutate(
+    county = str_trim(str_remove(county, "County")),
+    month = month.name[month]
+  ) |> 
   arrange(county, zip_code) 
-
-  
 ```
-- remove region_type, state_name, city, 
-- rename region_name to zip_code
-- pivot longer
-- clean up date variable
-- fix county_name to remove County
-- rearrange to have variables start with county and zip code
-- ???remove NA values???
 
 Merge zip_zori_df and zip_code_df
 
@@ -206,44 +185,44 @@ combined_zip_zori_df =
   janitor::clean_names()
 ```
 
-PARAPGRAPH DESCRIPTION
+The dataset has `r nrow(combined_zip_zori_df)` observations and `r ncol(combined_zip_zori_df)` variables. The dataset contains ZORI calculated by Zillow for the years ranging from `r min(pull(combined_zip_zori_df, year), na.rm = TRUE)` to `r max(pull(combined_zip_zori_df, year), na.rm = TRUE)`. There are `r length(unique(pull(combined_zip_zori_df, zip_code)))` unique zip codes and `r length(unique(pull(combined_zip_zori_df, neighborhood)))` unique neighborhoods in the dataset.
 
-The dataset has `r nrow(combined_zip_zori_df)` observations. There are `r length(unique(pull(combined_zip_zori_df, zip_code)))` unique zip codes and `r length(unique(pull(combined_zip_zori_df, neighborhood)))` unique neighborhoods in the dataset.
+`r as.integer(unique(pull(filter(combined_zip_zori_df, is.na(year)), zip_code)))` are zip codes that appear in the ZIP code dataset, but do not appear in the Zillow Rental Price dataset. This can occur because there are certain zip codes that either have low or no rental housing associated with it, so it cannot produce a reliable ZORI score. This is because some zip codes cover multiple boroughs and geographic areas. Some zip codes also cover areas in both NYC and New York State. For example, 11001 covers Floral Park in Queens and parts of Nassau County in New York State. This can cause this zip code to not be included in the zillow dataset. Some zip codes are also associated with a non-geographic area. More specifically, some zip codes in NYC only covers a single large address, building complex, businesses, government offices, or po boxes and not associated with a traditional neighborhood or borough. For example, 10259 is associated with a single building under HSBC Bank in Manhattan. Additionally, 11430 is associated with the JFK airport. Since these locations and may not have a lot of residential housing associated with it, these zip code won't be included in zillow. 
 
-Which ZIP codes appear in the ZIP code dataset but not in the Zillow Rental Price dataset? Using a few illustrative examples discuss why these ZIP codes might be excluded from the Zillow dataset.
-
-`r as.integer(unique(pull(filter(combined_zip_zori_df, is.na(year)), zip_code)))` are  zip codes that appear in the ZIP code dataset but not in the Zillow Rental Price dataset. 
-
-These zip codes may be excluded from the Zillow dataset because 
-- those areas don't have much rental housing, so not enough data to produce a reliable ZORI score?
-- some of these zip codes are associated with a unique-non-geographic zip code, more specifically a single large address or building complex. It is not associated with a traditioanl neighborhood or borough.  some may be associated with po box, or also government offices. (JFK airport) 
-- some zip codes cover multiple geographic areas/boroughs/some are part of new york state, not NYC
-- some zip codes cover universities, hostpials, military facilities??
-
-For all available ZIP codes, compare rental prices in January 2021 to prices in January 2020. 
-
-Make a table that shows the 10 ZIP codes (along with the borough and neighborhood) with largest drop in price from January 2020 to 2021.
+For all available ZIP codes, compare rental prices in January 2021 to prices in January 2020.
+Filter combined_zip_zori_df to only contain available rental prices in January 2020 and January 2021 for available zip codes.
 
 ```{r}
-combined_zip_zori_df |> 
+filter_combined_zip_zori_df =
+  combined_zip_zori_df |> 
   arrange(zip_code) |> 
-  filter(month == 1, 
-         year %in% c(2020, 2021)) |> #only keep zori scores from January 2020 and 2021
+  filter(
+    month == "January", 
+    year %in% c(2020, 2021)
+  ) |> #only keep zori scores from January 2020 and 2021
   select(-month) |> #remove month column
   pivot_wider(
     names_from = year,
-    values_from = zori,
-    #names_prefix = "year_"
+    values_from = zori
   ) |> 
   drop_na(`2020`, `2021`) |> # drop rows that have NA values in either 2020 or 2021
   mutate(
-    difference = `2020` - `2021` # more postiive number, larger drop in price
+    difference = `2020` - `2021` # more positive number, larger drop in price
   ) |> 
-  arrange(desc(difference)) |> 
+  arrange(desc(difference)) #|> 
+  #head(10) |> 
+ # knitr::kable()
+
+```
+
+Make a table that shows the 10 ZIP codes (along with the borough and neighborhood) with largest drop in price from January 2020 to January 2021.
+
+```{r}
+filter_combined_zip_zori_df |> 
   head(10) |> 
   knitr::kable()
 ```
 
+After filtering to include zip codes with available rental prices for both January 2020 and January 2021, the resulting dataset include `r nrow(filter_combined_zip_zori_df)` observations. The `difference` variable is added to represent the ZORI difference between 2020 to 2021, by calculating ZORI in 2020 minus ZORI in 2021. This means the more larger and positive the `difference` value is, the larger the price drop. 
 
-
-
+The 10 zip codes with the largest drop in price from January 2020 to January 2021 all reside in Manhattan (New York County), but different neighborhoods within Manhattan. `r as.integer(filter_combined_zip_zori_df |> slice(1) |> pull(zip_code))` had the highest rental price drop between January 2020 and January 2021 of \$`r round(max(pull(filter_combined_zip_zori_df, difference)), 3)`. The top 10 price drops ranges from \$`r round(filter_combined_zip_zori_df |> slice(10) |> pull(difference), 2)` to \$`r round(max(pull(filter_combined_zip_zori_df, difference)), 3)`.
