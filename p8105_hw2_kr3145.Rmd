@@ -66,12 +66,11 @@ unemployment_df =
   mutate(
     month = month.name[match(toupper(month), toupper(month.abb))]
   )
-
 ```
+
 Merge pols_month_df, snp_df, and unemployment_df
 
 ```{r}
-# join datasets
 pols_snp_unempl_df =
   left_join(pols_month_df, snp_df, by = c("year", "month")) |> 
   left_join(unemployment_df, by = c("year", "month"))
@@ -83,7 +82,7 @@ contains information about the Standard & Poor's stock market index (S&P), which
 is used as a representative measure of stock market as a whole. `unemployment_df` 
 from unemployment.csv contains monthly percentage of unemployment for the associated 
 year. After tidying and merging the above datasets, the resulting dataset,
-`pols_snp_unempl_df` contains `r nrow(pols_snp_unempl_df)` observations and 
+`pols_snp_unempl_df`, contains `r nrow(pols_snp_unempl_df)` observations and 
 `r ncol(pols_snp_unempl_df)` variables. The dataset represents the years ranging 
 from `r min(pull(pols_snp_unempl_df, year))` to `r max(pull(pols_snp_unempl_df, year))`. 
 
@@ -142,7 +141,7 @@ gwynnda_df =
   )
 ```
 
-Bind mr_trash_wheel_df, prof_trash_wheel_df, and gwynnda_df
+Combine mr_trash_wheel_df, prof_trash_wheel_df, and gwynnda_df
 
 ```{r}
 all_trash_wheel_df =
@@ -244,21 +243,18 @@ filter_combined_zip_zori_df =
   arrange(zip_code) |> 
   filter(
     month == "January", 
-    year %in% c(2020, 2021)
-  ) |> #only keep zori scores from January 2020 and 2021
-  select(-month) |> #remove month column
+    year %in% c(2020, 2021) #only keep zori scores from January 2020 and 2021
+  ) |> 
+  select(-month) |> 
   pivot_wider(
     names_from = year,
     values_from = zori
   ) |> 
   drop_na(`2020`, `2021`) |> # drop rows that have NA values in either 2020 or 2021
   mutate(
-    difference = `2020` - `2021` # more positive number, larger drop in price
+    price_drop = `2020` - `2021` # more positive number, larger drop in price
   ) |> 
-  arrange(desc(difference)) #|> 
-  #head(10) |> 
- # knitr::kable()
-
+  arrange(desc(price_drop))
 ```
 
 Make a table that shows the 10 ZIP codes (along with the borough and neighborhood) with largest drop in price from January 2020 to January 2021.
@@ -271,14 +267,14 @@ filter_combined_zip_zori_df |>
 
 After filtering to include zip codes with available rental prices for both January 2020 and
 January 2021, the resulting dataset include `r nrow(filter_combined_zip_zori_df)`
-observations. The `difference` variable is included to represent the ZORI difference between
+observations. The `price_drop` variable is included to represent the ZORI difference between
 2020 to 2021, by calculating ZORI in 2020 minus ZORI in 2021. This means the larger and more
-positive the `difference` value is, the larger the price drop. 
+positive the `price_drop` value is, the larger the price drop. 
 
 The 10 zip codes with the largest drop in price from January 2020 to January 2021 all reside
-in Manhattan (New York County), but different neighborhoods within Manhattan. 
+in Manhattan (New York County), but includes different neighborhoods within Manhattan. 
 `r as.integer(filter_combined_zip_zori_df |> slice(1) |> pull(zip_code))` had the highest
 rental price drop between January 2020 and January 2021 of 
-\$`r round(max(pull(filter_combined_zip_zori_df, difference)), 3)`. The top 10 price drops
-ranges from \$`r round(filter_combined_zip_zori_df |> slice(10) |> pull(difference), 2)` to
-\$`r round(max(pull(filter_combined_zip_zori_df, difference)), 3)`.
+\$`r round(max(pull(filter_combined_zip_zori_df, price_drop)), 3)`. The top 10 price drops
+ranges from \$`r round(filter_combined_zip_zori_df |> slice(10) |> pull(price_drop), 2)` to
+\$`r round(max(pull(filter_combined_zip_zori_df, price_drop)), 3)`.
