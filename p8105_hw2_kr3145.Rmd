@@ -77,9 +77,23 @@ pols_snp_unempl_df =
   left_join(unemployment_df, by = c("year", "month"))
 ```
 
-`pols_month_df` from pols-month.csv contains the number of national politicians who are democratic or republican at any given time. `snp_df` from snp.csv contains contains information about the Standard & Poor's stock market index (S&P), which is used as a representative measure of stock market as a whole. `unemployment_df` from unemployment.csv contains monthly percentage of unemployment for the associated year. After tidying and merging the above datasets, the resulting dataset, `pols_snp_unempl_df` contains `r nrow(pols_snp_unempl_df)` observations and `r ncol(pols_snp_unempl_df)` variables. The dataset represents the years ranging from `r min(pull(pols_snp_unempl_df, year))` to `r max(pull(pols_snp_unempl_df, year))`. 
+`pols_month_df` from pols-month.csv contains the number of national politicians 
+who are democratic or republican at any given time. `snp_df` from snp.csv contains 
+contains information about the Standard & Poor's stock market index (S&P), which 
+is used as a representative measure of stock market as a whole. `unemployment_df` 
+from unemployment.csv contains monthly percentage of unemployment for the associated 
+year. After tidying and merging the above datasets, the resulting dataset,
+`pols_snp_unempl_df` contains `r nrow(pols_snp_unempl_df)` observations and 
+`r ncol(pols_snp_unempl_df)` variables. The dataset represents the years ranging 
+from `r min(pull(pols_snp_unempl_df, year))` to `r max(pull(pols_snp_unempl_df, year))`. 
 
-`gov_gop`, `sen_gop`, and `rep_gop` represents the number of governors, senators, and representatives in the republican party on the associated date. `gov_dem`, `sen_dem`, and `rep_dem` represents the number of governors, senators, and representatives in the democratic party during the associated date. `president` indicates whether the president was republican or democratic during the associated date. `close` represents the closing values of the S&P stock index on the associated date. `percent_unemployed` represents the percentage of unemployment during the associated date. 
+`gov_gop`, `sen_gop`, and `rep_gop` represents the number of governors, senators, and
+representatives in the republican party on the associated date. `gov_dem`, `sen_dem`, and
+`rep_dem` represents the number of governors, senators, and representatives in the democratic
+party during the associated date. `president` indicates whether the president was republican
+or democratic during the associated date. `close` represents the closing values of the S&P
+stock index on the associated date. `percent_unemployed` represents the percentage of
+unemployment during the associated date. 
 
 # Problem 2
 
@@ -137,9 +151,20 @@ all_trash_wheel_df =
   select(dumpster, trash_wheel, everything())
 ```
 
-The resulting dataset, `all_trash_wheel_df`, has `r nrow(all_trash_wheel_df)` observations and `r ncol(all_trash_wheel_df)` variables. The dataset represents the years ranging from `r min(pull(all_trash_wheel_df, year), na.rm = TRUE)` to `r max(pull(all_trash_wheel_df, year), na.rm = TRUE)`. Some key variables include `weight_tons`, representing the weight of trash in tons, and  `volume_cubic_yards`, representing volume of trash in cubic yards. There are also other variables representing litter types, including `plastic_bottles`, `polystyrene`, `cigarette_butts`, `glass_bottles`, `plastic_bags`, and `wrappers`. `home_powered` represents the number of homes the amount of trash for the dumpster is able to power.  
+The resulting dataset, `all_trash_wheel_df`, has `r nrow(all_trash_wheel_df)` observations and
+`r ncol(all_trash_wheel_df)` variables. The dataset represents the years ranging from 
+`r min(pull(all_trash_wheel_df, year), na.rm = TRUE)` to 
+`r max(pull(all_trash_wheel_df, year), na.rm = TRUE)`. Some key variables include
+`weight_tons`, representing the weight of trash in tons, and  `volume_cubic_yards`,
+representing volume of trash in cubic yards. There are also other variables representing
+litter types, including `plastic_bottles`, `polystyrene`, `cigarette_butts`, `glass_bottles`,
+`plastic_bags`, and `wrappers`. `home_powered` represents the number of homes the amount of
+trash for the dumpster is able to power.  
 
-The total weight of trash collected by Professor Trash Wheel is `r sum(pull(filter(all_trash_wheel_df, trash_wheel == "prof"), weight_tons), na.rm = TRUE)` tons. The total number of cigarette butts collected by Gwynnda in June of 2022 is `r as.integer(sum(pull(filter(all_trash_wheel_df, trash_wheel == "gwynnda", month == "June", year == 2022), cigarette_butts), na.rm = TRUE))`.
+The total weight of trash collected by Professor Trash Wheel is 
+`r sum(pull(filter(all_trash_wheel_df, trash_wheel == "prof"), weight_tons), na.rm = TRUE)`
+tons. The total number of cigarette butts collected by Gwynnda in June of 2022 is 
+`r as.integer(sum(pull(filter(all_trash_wheel_df, trash_wheel == "gwynnda", month == "June", year == 2022), cigarette_butts), na.rm = TRUE))`.
 
 # Problem 3
 
@@ -184,13 +209,34 @@ combined_zip_zori_df =
   janitor::clean_names()
 ```
 
-The dataset has `r nrow(combined_zip_zori_df)` observations and `r ncol(combined_zip_zori_df)` variables. The dataset contains ZORI calculated by Zillow for the years ranging from `r min(pull(combined_zip_zori_df, year), na.rm = TRUE)` to `r max(pull(combined_zip_zori_df, year), na.rm = TRUE)`. There are `r length(unique(pull(combined_zip_zori_df, zip_code)))` unique zip codes and `r length(unique(pull(combined_zip_zori_df, neighborhood)))` unique neighborhoods in the dataset.
+The dataset has `r nrow(combined_zip_zori_df)` observations and `r ncol(combined_zip_zori_df)`
+variables. The dataset contains ZORI calculated by Zillow for the years ranging from 
+`r min(pull(combined_zip_zori_df, year), na.rm = TRUE)` to 
+`r max(pull(combined_zip_zori_df, year), na.rm = TRUE)`. There are 
+`r length(unique(pull(combined_zip_zori_df, zip_code)))` unique zip codes and 
+`r length(unique(pull(combined_zip_zori_df, neighborhood)))` 
+unique neighborhoods in the dataset.
 
 
-There are `r length(unique(pull(filter(combined_zip_zori_df, is.na(year)), zip_code)))` zip codes that appear in the ZIP code dataset, but do not appear in the Zillow Rental Price dataset. These zip codes are `r as.integer(unique(pull(filter(combined_zip_zori_df, is.na(year)), zip_code)))`. This can occur because there are certain zip codes that either have low or no rental housing associated with it, so it cannot produce a reliable ZORI score. This is because some zip codes cover multiple boroughs and geographic areas. Some zip codes also cover areas in both NYC and New York State. For example, 11001 covers Floral Park in Queens and parts of Nassau County in New York State. This can cause this zip code to not be included in the zillow dataset. Some zip codes are also associated with a non-geographic area. More specifically, some zip codes in NYC only covers a single large address, building complex, businesses, government offices, or PO boxes and not associated with a traditional neighborhood or borough. For example, 10259 is associated with a single building under HSBC Bank in Manhattan. Additionally, 11430 is associated with the JFK airport. Since these locations may not have residential housing associated with it, these zip codes won't be included in the Zillow dataset. 
+There are `r length(unique(pull(filter(combined_zip_zori_df, is.na(year)), zip_code)))` zip
+codes that appear in the ZIP code dataset, but do not appear in the Zillow Rental Price
+dataset. These zip codes are 
+`r as.integer(unique(pull(filter(combined_zip_zori_df, is.na(year)), zip_code)))`. 
+This can occur because there are certain zip codes that either have low or no rental housing
+associated with it, so it cannot produce a reliable ZORI score. This is because some zip codes
+cover multiple boroughs and geographic areas. Some zip codes also cover areas in both NYC and
+New York State. For example, 11001 covers Floral Park in Queens and parts of Nassau County in
+New York State. This can cause this zip code to not be included in the zillow dataset. Some
+zip codes are also associated with a non-geographic area. More specifically, some zip codes in
+NYC only covers a single large address, building complex, businesses, government offices, or
+PO boxes and not associated with a traditional neighborhood or borough. For example, 10259 is
+associated with a single building under HSBC Bank in Manhattan. Additionally, 11430 is
+associated with the JFK airport. Since these locations may not have residential housing
+associated with it, these zip codes won't be included in the Zillow dataset. 
 
 For all available ZIP codes, compare rental prices in January 2021 to prices in January 2020.
-Filter combined_zip_zori_df to only contain available rental prices in January 2020 and January 2021 for available zip codes.
+Filter combined_zip_zori_df to only contain available rental prices in January 2020 and
+January 2021 for available zip codes.
 
 ```{r}
 filter_combined_zip_zori_df =
@@ -223,6 +269,16 @@ filter_combined_zip_zori_df |>
   knitr::kable()
 ```
 
-After filtering to include zip codes with available rental prices for both January 2020 and January 2021, the resulting dataset include `r nrow(filter_combined_zip_zori_df)` observations. The `difference` variable is added to represent the ZORI difference between 2020 to 2021, by calculating ZORI in 2020 minus ZORI in 2021. This means the more larger and positive the `difference` value is, the larger the price drop. 
+After filtering to include zip codes with available rental prices for both January 2020 and
+January 2021, the resulting dataset include `r nrow(filter_combined_zip_zori_df)`
+observations. The `difference` variable is included to represent the ZORI difference between
+2020 to 2021, by calculating ZORI in 2020 minus ZORI in 2021. This means the larger and more
+positive the `difference` value is, the larger the price drop. 
 
-The 10 zip codes with the largest drop in price from January 2020 to January 2021 all reside in Manhattan (New York County), but different neighborhoods within Manhattan. `r as.integer(filter_combined_zip_zori_df |> slice(1) |> pull(zip_code))` had the highest rental price drop between January 2020 and January 2021 of \$`r round(max(pull(filter_combined_zip_zori_df, difference)), 3)`. The top 10 price drops ranges from \$`r round(filter_combined_zip_zori_df |> slice(10) |> pull(difference), 2)` to \$`r round(max(pull(filter_combined_zip_zori_df, difference)), 3)`.
+The 10 zip codes with the largest drop in price from January 2020 to January 2021 all reside
+in Manhattan (New York County), but different neighborhoods within Manhattan. 
+`r as.integer(filter_combined_zip_zori_df |> slice(1) |> pull(zip_code))` had the highest
+rental price drop between January 2020 and January 2021 of 
+\$`r round(max(pull(filter_combined_zip_zori_df, difference)), 3)`. The top 10 price drops
+ranges from \$`r round(filter_combined_zip_zori_df |> slice(10) |> pull(difference), 2)` to
+\$`r round(max(pull(filter_combined_zip_zori_df, difference)), 3)`.
