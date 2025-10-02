@@ -148,8 +148,8 @@ Read and clean Zip Codes.csv
 zip_code_df =
   read_csv("data/Zip Codes.csv") |> 
   janitor::clean_names() |> 
-  arrange(county, zip_code) |> 
-  select(-(state_fips:county_fips), -file_date) 
+  select(zip_code, neighborhood) |> 
+  distinct(zip_code, .keep_all = TRUE)
 
 ```
 
@@ -169,25 +169,25 @@ zip_zori_df =
     date, into = c("year", "month", "day"), sep = "_", convert = TRUE
   ) |> 
   rename(zip_code = region_name, county = county_name) |> 
-  select(county, zip_code, year, month, zori) |> 
+  select(zip_code, county, year, month, zori) |> 
   mutate(
     county = str_trim(str_remove(county, "County")),
     month = month.name[month]
-  ) |> 
-  arrange(county, zip_code) 
+  ) 
 ```
 
 Merge zip_zori_df and zip_code_df
 
 ```{r}
 combined_zip_zori_df =
-  left_join(zip_code_df, zip_zori_df, by = c("county", "zip_code")) |> 
+  left_join(zip_code_df, zip_zori_df, by = c("zip_code")) |> 
   janitor::clean_names()
 ```
 
 The dataset has `r nrow(combined_zip_zori_df)` observations and `r ncol(combined_zip_zori_df)` variables. The dataset contains ZORI calculated by Zillow for the years ranging from `r min(pull(combined_zip_zori_df, year), na.rm = TRUE)` to `r max(pull(combined_zip_zori_df, year), na.rm = TRUE)`. There are `r length(unique(pull(combined_zip_zori_df, zip_code)))` unique zip codes and `r length(unique(pull(combined_zip_zori_df, neighborhood)))` unique neighborhoods in the dataset.
 
-`r as.integer(unique(pull(filter(combined_zip_zori_df, is.na(year)), zip_code)))` are zip codes that appear in the ZIP code dataset, but do not appear in the Zillow Rental Price dataset. This can occur because there are certain zip codes that either have low or no rental housing associated with it, so it cannot produce a reliable ZORI score. This is because some zip codes cover multiple boroughs and geographic areas. Some zip codes also cover areas in both NYC and New York State. For example, 11001 covers Floral Park in Queens and parts of Nassau County in New York State. This can cause this zip code to not be included in the zillow dataset. Some zip codes are also associated with a non-geographic area. More specifically, some zip codes in NYC only covers a single large address, building complex, businesses, government offices, or po boxes and not associated with a traditional neighborhood or borough. For example, 10259 is associated with a single building under HSBC Bank in Manhattan. Additionally, 11430 is associated with the JFK airport. Since these locations and may not have a lot of residential housing associated with it, these zip code won't be included in zillow. 
+
+There are `r length(unique(pull(filter(combined_zip_zori_df, is.na(year)), zip_code)))` zip codes that appear in the ZIP code dataset, but do not appear in the Zillow Rental Price dataset. These zip codes are `r as.integer(unique(pull(filter(combined_zip_zori_df, is.na(year)), zip_code)))`. This can occur because there are certain zip codes that either have low or no rental housing associated with it, so it cannot produce a reliable ZORI score. This is because some zip codes cover multiple boroughs and geographic areas. Some zip codes also cover areas in both NYC and New York State. For example, 11001 covers Floral Park in Queens and parts of Nassau County in New York State. This can cause this zip code to not be included in the zillow dataset. Some zip codes are also associated with a non-geographic area. More specifically, some zip codes in NYC only covers a single large address, building complex, businesses, government offices, or PO boxes and not associated with a traditional neighborhood or borough. For example, 10259 is associated with a single building under HSBC Bank in Manhattan. Additionally, 11430 is associated with the JFK airport. Since these locations may not have residential housing associated with it, these zip codes won't be included in the Zillow dataset. 
 
 For all available ZIP codes, compare rental prices in January 2021 to prices in January 2020.
 Filter combined_zip_zori_df to only contain available rental prices in January 2020 and January 2021 for available zip codes.
